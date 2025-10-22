@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Operación Repaso</title>
+  <style>
+    /* === ESTILOS GENERALES === */
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #ffb6c1, #ff69b4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .app-container {
+      background: #fff;
+      border-radius: 20px;
+      padding: 30px;
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (min-width: 768px) {
+      .app-container {
+        width: 50%;
+      }
+    }
+
+    h1, h2 {
+      color: #d63384;
+    }
+
+    p {
+      color: #444;
+    }
+
+    .love {
+      font-weight: bold;
+      color: #c2185b;
+      font-size: 1.2em;
+    }
+
+    /* === BOTONES === */
+    button {
+      background: #d63384;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      margin: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: #ad1457;
+    }
+
+    .subject-buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    #options button {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 12px;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: 2px solid #ff69b4;
+      background: white;
+      color: #d63384;
+    }
+
+    #options button:hover {
+      background: #ff69b4;
+      color: white;
+    }
+
+    /* === BARRA DE PROGRESO === */
+    .progress-bar-container {
+      background-color: #ffd6e0;
+      width: 100%;
+      height: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background-color: #d63384;
+      border-radius: 10px;
+      transition: width 0.3s;
+    }
+
+    /* === PANTALLAS === */
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    /* === FEEDBACK === */
+    #feedback-message {
+      font-size: 1.5rem;
+      color: #ad1457;
+    }
+
+    #feedback-detail {
+      color: #555;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container" id="app">
+    <!-- Pantalla de inicio -->
+    <div id="start-screen" class="screen active">
+      <h1>Operación Repaso</h1>
+      <h2>Quiz avanzado de Enfermería</h2>
+      <p>Mucha suerte Leilani 💕</p>
+      <p class="love">Te amo</p>
+      <div class="subject-buttons">
+        <button onclick="startQuiz('Farmacología')">Farmacología</button>
+        <button onclick="startQuiz('Anatomía')">Anatomía</button>
+      </div>
+    </div>
+
+    <!-- Pantalla de preguntas -->
+    <div id="quiz-screen" class="screen">
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      <h2 id="question-text"></h2>
+      <div id="options"></div>
+    </div>
+
+    <!-- Pantalla de feedback -->
+    <div id="feedback-screen" class="screen">
+      <h2 id="feedback-message"></h2>
+      <p id="feedback-detail"></p>
+      <button onclick="nextQuestion()">Siguiente</button>
+    </div>
+
+    <!-- Pantalla de resultados -->
+    <div id="result-screen" class="screen">
+      <h2 id="result-text"></h2>
+      <p id="result-message"></p>
+      <button onclick="goHome()">Reiniciar</button>
+    </div>
+  </div>
+
+  <script>
+    /* === JAVASCRIPT === */
+
+    const allQuestions = {
+      Farmacología: [
+      { text: "¿Qué es la farmacología?", options: ["Ciencia que estudia los medicamentos y sus efectos", "Ciencia que estudia los huesos", "Ciencia que estudia los genes", "Ciencia que estudia los alimentos"], answerIndex: 0, feedback: "La farmacología analiza los efectos de los fármacos en los organismos vivos." },
+  { text: "¿Qué es un fármaco?", options: ["Cualquier sustancia química que produce un efecto biológico", "Una vitamina", "Un mineral", "Un alimento"], answerIndex: 0, feedback: "Un fármaco es toda sustancia capaz de modificar funciones fisiológicas." },
+  { text: "¿Cuál es el objetivo principal de la farmacocinética?", options: ["Estudiar cómo el cuerpo afecta al fármaco", "Estudiar cómo el fármaco afecta al cuerpo", "Analizar efectos adversos", "Evaluar reacciones alérgicas"], answerIndex: 0, feedback: "La farmacocinética analiza absorción, distribución, metabolismo y excreción del fármaco." },
+  { text: "¿Cuál es la vía más rápida de administración de medicamentos?", options: ["Intravenosa", "Oral", "Subcutánea", "Rectal"], answerIndex: 0, feedback: "La vía intravenosa permite que el fármaco llegue directamente al torrente sanguíneo." },
+  { text: "¿Qué es la biodisponibilidad?", options: ["Porcentaje del fármaco que llega a la circulación sistémica", "Cantidad de fármaco eliminado por el hígado", "Capacidad de unión a proteínas", "Volumen de distribución"], answerIndex: 0, feedback: "La biodisponibilidad indica cuánto del fármaco administrado llega a la sangre sin alterarse." },
+  { text: "¿Qué órgano es el principal responsable del metabolismo de los fármacos?", options: ["Hígado", "Riñón", "Pulmón", "Estómago"], answerIndex: 0, feedback: "El hígado metaboliza la mayoría de los fármacos mediante enzimas del citocromo P450." },
+  { text: "¿Qué significa la sigla ADME?", options: ["Absorción, Distribución, Metabolismo y Excreción", "Acción, Dosis, Metabolismo y Eliminación", "Administración, Digestión, Movimiento y Excreción", "Absorción, Digestión, Medición y Evaluación"], answerIndex: 0, feedback: "ADME describe las fases farmacocinéticas del recorrido del fármaco en el organismo." },
+  { text: "¿Qué es un efecto adverso?", options: ["Reacción no deseada producida por un medicamento", "Efecto terapéutico esperado", "Interacción entre alimentos", "Efecto placebo"], answerIndex: 0, feedback: "Los efectos adversos son reacciones perjudiciales no intencionadas de un medicamento." },
+  { text: "¿Cuál es la principal función de los antiinflamatorios no esteroideos (AINEs)?", options: ["Reducir dolor, fiebre e inflamación", "Reducir ansiedad", "Aumentar la presión arterial", "Estimular el apetito"], answerIndex: 0, feedback: "Los AINEs inhiben la síntesis de prostaglandinas, reduciendo dolor e inflamación." },
+  { text: "¿Cuál es el mecanismo de acción del paracetamol?", options: ["Inhibe la síntesis de prostaglandinas en el SNC", "Bloquea receptores beta", "Estimula receptores alfa", "Inhibe la recaptación de serotonina"], answerIndex: 0, feedback: "El paracetamol actúa en el sistema nervioso central reduciendo fiebre y dolor." },
+  { text: "¿Qué tipo de medicamento es la penicilina?", options: ["Antibiótico", "Antihipertensivo", "Antidepresivo", "Analgésico"], answerIndex: 0, feedback: "La penicilina es un antibiótico betalactámico que inhibe la síntesis de la pared bacteriana." },
+  { text: "¿Cuál es la principal vía de eliminación de los fármacos?", options: ["Renal", "Pulmonar", "Cutánea", "Digestiva"], answerIndex: 0, feedback: "El riñón excreta la mayoría de los metabolitos de los fármacos a través de la orina." },
+  { text: "¿Qué son los agonistas?", options: ["Fármacos que activan receptores", "Fármacos que bloquean receptores", "Sustancias que destruyen enzimas", "Vitaminas"], answerIndex: 0, feedback: "Los agonistas se unen a los receptores y los activan para producir una respuesta." },
+  { text: "¿Qué son los antagonistas?", options: ["Fármacos que bloquean receptores", "Fármacos que estimulan receptores", "Fármacos que destruyen bacterias", "Sustancias endógenas"], answerIndex: 0, feedback: "Los antagonistas impiden la acción de un agonista al bloquear el receptor." },
+  { text: "¿Qué es la vida media de un fármaco?", options: ["Tiempo para reducir a la mitad su concentración plasmática", "Tiempo que tarda en hacer efecto", "Duración del tratamiento", "Tiempo que permanece en el estómago"], answerIndex: 0, feedback: "La vida media indica cuánto tarda el cuerpo en eliminar la mitad del fármaco." },
+  { text: "¿Qué significa el término 'efecto placebo'?", options: ["Mejora por expectativa sin acción farmacológica", "Efecto adverso severo", "Respuesta alérgica", "Aceleración metabólica"], answerIndex: 0, feedback: "El efecto placebo es una respuesta psicológica positiva sin base farmacológica real." },
+  { text: "¿Qué grupo farmacológico actúa reduciendo la presión arterial?", options: ["Antihipertensivos", "Analgésicos", "Antibióticos", "Antihistamínicos"], answerIndex: 0, feedback: "Los antihipertensivos controlan la presión arterial reduciendo la carga cardiovascular." },
+  { text: "¿Qué tipo de fármaco es el diazepam?", options: ["Ansiolítico benzodiacepínico", "Antibiótico", "Diurético", "Analgésico"], answerIndex: 0, feedback: "El diazepam es una benzodiacepina usada para ansiedad, insomnio y convulsiones." },
+  { text: "¿Cuál es el principal efecto adverso de los opioides?", options: ["Depresión respiratoria", "Hipertensión", "Diarrea", "Taquicardia"], answerIndex: 0, feedback: "Los opioides pueden suprimir el centro respiratorio en dosis altas." },
+  { text: "¿Cuál es el antídoto del paracetamol en sobredosis?", options: ["N-acetilcisteína", "Vitamina C", "Atropina", "Naloxona"], answerIndex: 0, feedback: "La N-acetilcisteína protege al hígado en casos de intoxicación por paracetamol." },
+  { text: "¿Qué significa 'toxicidad terapéutica'?", options: ["Efectos tóxicos dentro del rango terapéutico", "Uso prolongado del fármaco", "Tolerancia", "Dependencia"], answerIndex: 0, feedback: "Algunos fármacos pueden causar daño incluso a dosis terapéuticas." },
+  { text: "¿Qué es un antibiótico de amplio espectro?", options: ["Actúa contra muchas bacterias diferentes", "Solo actúa contra virus", "Solo sirve para hongos", "Se usa en dosis muy altas"], answerIndex: 0, feedback: "Los antibióticos de amplio espectro eliminan bacterias grampositivas y gramnegativas." },
+  { text: "¿Qué medicamento se usa como broncodilatador en el asma?", options: ["Salbutamol", "Atenolol", "Diazepam", "Paracetamol"], answerIndex: 0, feedback: "El salbutamol activa receptores beta2, relajando el músculo bronquial." },
+  { text: "¿Qué fármaco es un anticoagulante oral?", options: ["Warfarina", "Paracetamol", "Amoxicilina", "Diazepam"], answerIndex: 0, feedback: "La warfarina inhibe la síntesis de factores de coagulación dependientes de vitamina K." },
+  { text: "¿Qué son los diuréticos?", options: ["Fármacos que aumentan la eliminación de orina", "Fármacos que reducen la presión arterial cerebral", "Fármacos que elevan la glucosa", "Fármacos que reducen el metabolismo"], answerIndex: 0, feedback: "Los diuréticos eliminan sodio y agua para reducir el volumen sanguíneo." },
+  { text: "¿Cuál es un ejemplo de diurético de asa?", options: ["Furosemida", "Hidroclorotiazida", "Espironolactona", "Acetazolamida"], answerIndex: 0, feedback: "La furosemida actúa en el asa de Henle aumentando la excreción de sodio y agua." },
+  { text: "¿Qué significa farmacodinámica?", options: ["Estudio de los efectos del fármaco sobre el organismo", "Estudio del metabolismo del fármaco", "Estudio de la excreción renal", "Estudio del transporte celular"], answerIndex: 0, feedback: "La farmacodinámica describe el mecanismo de acción y efectos del fármaco." },
+  { text: "¿Cuál es el principal efecto secundario de los AINEs en el sistema digestivo?", options: ["Úlcera gástrica", "Estreñimiento", "Náuseas leves", "Diarrea"], answerIndex: 0, feedback: "Los AINEs pueden irritar la mucosa gástrica y causar úlceras." },
+  { text: "¿Qué es una interacción medicamentosa?", options: ["Alteración de los efectos por otro fármaco o alimento", "Efecto secundario", "Alergia", "Tolerancia"], answerIndex: 0, feedback: "Las interacciones ocurren cuando un fármaco modifica el efecto de otro." },
+  { text: "¿Cuál es el antídoto para la intoxicación por opioides?", options: ["Naloxona", "N-acetilcisteína", "Vitamina K", "Atropina"], answerIndex: 0, feedback: "La naloxona revierte rápidamente la depresión respiratoria causada por opioides." },
+  { text: "¿Qué tipo de fármaco es la insulina?", options: ["Hormona hipoglucemiante", "Antihipertensivo", "Antibiótico", "Analgésico"], answerIndex: 0, feedback: "La insulina disminuye la glucosa sanguínea al facilitar su entrada a las células." },
+  { text: "¿Cuál es el principal uso de la metformina?", options: ["Tratamiento de la diabetes tipo 2", "Hipertensión", "Depresión", "Infecciones"], answerIndex: 0, feedback: "La metformina reduce la producción hepática de glucosa y mejora la sensibilidad a la insulina." },
+  { text: "¿Qué efecto tiene la adrenalina?", options: ["Aumenta la frecuencia cardíaca y la presión arterial", "Disminuye la glucosa", "Causa sedación", "Relaja el intestino"], answerIndex: 0, feedback: "La adrenalina activa el sistema simpático provocando aumento de la frecuencia y presión arterial." },
+  { text: "¿Cuál es el mecanismo de acción de los IECA?", options: ["Inhiben la enzima convertidora de angiotensina", "Bloquean los receptores beta", "Reducen la frecuencia respiratoria", "Aumentan la absorción de sodio"], answerIndex: 0, feedback: "Los IECA bloquean la formación de angiotensina II, reduciendo la presión arterial." },
+  { text: "¿Cuál es el uso principal de los antihistamínicos?", options: ["Tratar alergias", "Reducir la presión arterial", "Aumentar la frecuencia cardíaca", "Tratar infecciones"], answerIndex: 0, feedback: "Los antihistamínicos bloquean los receptores H1, aliviando síntomas alérgicos." },
+  { text: "¿Qué tipo de medicamento es la morfina?", options: ["Analgésico opioide", "Analgésico no opioide", "Ansiolítico", "Antibiótico"], answerIndex: 0, feedback: "La morfina es un potente analgésico opioide para dolor severo." },
+  { text: "¿Qué es la tolerancia farmacológica?", options: ["Disminución del efecto con el uso continuo", "Reacción alérgica", "Respuesta inmediata", "Efecto placebo"], answerIndex: 0, feedback: "La tolerancia se desarrolla cuando se necesitan dosis mayores para el mismo efecto." },
+  { text: "¿Qué es la dependencia física?", options: ["Necesidad fisiológica del fármaco para evitar síntomas de abstinencia", "Preferencia psicológica", "Interacción adversa", "Efecto placebo"], answerIndex: 0, feedback: "La dependencia física ocurre cuando el cuerpo se adapta al uso continuo del fármaco." },
+  { text: "¿Qué fármaco se usa como anticonvulsivante principal?", options: ["Fenitoína", "Furosemida", "Paracetamol", "Diazepam"], answerIndex: 0, feedback: "La fenitoína estabiliza las membranas neuronales y previene crisis epilépticas." },
+  { text: "¿Qué es un antibiótico bactericida?", options: ["Mata las bacterias", "Inhibe su crecimiento", "Neutraliza toxinas", "Aumenta su reproducción"], answerIndex: 0, feedback: "Los bactericidas destruyen directamente las bacterias." },
+  { text: "¿Qué es un antibiótico bacteriostático?", options: ["Inhibe el crecimiento bacteriano", "Mata las bacterias", "Neutraliza virus", "Aumenta la fiebre"], answerIndex: 0, feedback: "Los bacteriostáticos impiden la reproducción de las bacterias para que el cuerpo las elimine." },
+  { text: "¿Cuál es un efecto adverso común de los antibióticos?", options: ["Diarrea", "Hipertensión", "Euforia", "Somnolencia extrema"], answerIndex: 0, feedback: "La alteración de la flora intestinal puede causar diarrea durante el uso de antibióticos." },
+  { text: "¿Qué significa farmacovigilancia?", options: ["Monitoreo de efectos adversos tras la comercialización", "Prueba de laboratorio previa al uso", "Medición de la dosis", "Control de temperatura del fármaco"], answerIndex: 0, feedback: "La farmacovigilancia detecta, evalúa y previene efectos adversos de medicamentos." },
+  { text: "¿Qué medicamento se utiliza para tratar la hipertensión arterial?", options: ["Enalapril", "Ibuprofeno", "Amoxicilina", "Diazepam"], answerIndex: 0, feedback: "El enalapril es un IECA usado comúnmente para controlar la presión arterial." },
+  { text: "¿Cuál es la función de los antiácidos?", options: ["Neutralizar el ácido gástrico", "Estimular el apetito", "Reducir el metabolismo", "Inducir el sueño"], answerIndex: 0, feedback: "Los antiácidos neutralizan el exceso de ácido en el estómago, aliviando la acidez." },
+  { text: "¿Cuál es el principal uso de la dopamina en medicina?", options: ["Tratar shock o insuficiencia cardíaca", "Sedante", "Antibiótico", "Hipoglucemiante"], answerIndex: 0, feedback: "La dopamina mejora la perfusión renal y cardíaca en situaciones críticas." },
+  { text: "¿Qué medicamento se usa para revertir la anticoagulación por warfarina?", options: ["Vitamina K", "Atropina", "Naloxona", "N-acetilcisteína"], answerIndex: 0, feedback: "La vitamina K contrarresta el efecto anticoagulante de la warfarina." },
+  { text: "¿Qué grupo farmacológico bloquea la recaptación de serotonina?", options: ["Antidepresivos ISRS", "Antibióticos", "Antihipertensivos", "Analgésicos"], answerIndex: 0, feedback: "Los ISRS aumentan la serotonina en el cerebro, mejorando el estado de ánimo." },
+  { text: "¿Qué significa 'efecto sinérgico'?", options: ["Combinación de fármacos con efecto mayor que la suma individual", "Disminución del efecto", "Neutralización mutua", "Reacción alérgica"], answerIndex: 0, feedback: "El efecto sinérgico ocurre cuando dos fármacos potencian mutuamente su acción." },
+  { text: "¿Qué fármaco se usa como bloqueador beta para angina e hipertensión?", options: ["Atenolol", "Paracetamol", "Amoxicilina", "Furosemida"], answerIndex: 0, feedback: "El atenolol reduce la frecuencia cardíaca y la presión arterial." },
+  { text: "¿Cuál es el uso terapéutico del omeprazol?", options: ["Tratar gastritis y úlceras", "Reducir presión arterial", "Aliviar alergias", "Tratar infecciones"], answerIndex: 0, feedback: "El omeprazol inhibe la bomba de protones, reduciendo la producción de ácido gástrico." },
+  { text: "¿Qué medicamento se usa para la epilepsia y trastorno bipolar?", options: ["Ácido valproico", "Furosemida", "Enalapril", "Amoxicilina"], answerIndex: 0, feedback: "El ácido valproico estabiliza las neuronas, reduciendo crisis epilépticas y episodios maníacos." },
+  { text: "¿Qué son los corticoides?", options: ["Antiinflamatorios esteroideos", "Antibióticos", "Antihistamínicos", "Hipoglucemiantes"], answerIndex: 0, feedback: "Los corticoides reducen inflamación e inhiben la respuesta inmune." },
+  { text: "¿Cuál es un ejemplo de corticoide?", options: ["Prednisona", "Amoxicilina", "Paracetamol", "Omeprazol"], answerIndex: 0, feedback: "La prednisona es un corticoide usado en inflamaciones y enfermedades autoinmunes." },
+  { text: "¿Qué fármaco se utiliza como antídoto en intoxicación por benzodiacepinas?", options: ["Flumazenil", "Naloxona", "Atropina", "Vitamina K"], answerIndex: 0, feedback: "El flumazenil antagoniza los efectos de las benzodiacepinas." },
+  { text: "¿Qué medicamento se usa para tratar infecciones por hongos?", options: ["Fluconazol", "Cefalexina", "Amoxicilina", "Ciprofloxacino"], answerIndex: 0, feedback: "El fluconazol es un antifúngico de amplio espectro." },
+  { text: "¿Qué tipo de fármaco es la amoxicilina?", options: ["Antibiótico betalactámico", "Analgésico", "Ansiolítico", "Corticoide"], answerIndex: 0, feedback: "La amoxicilina es un antibiótico derivado de la penicilina." },
+  { text: "¿Qué significa dosis tóxica?", options: ["Cantidad de fármaco que causa daño", "Dosis terapéutica mínima", "Cantidad inocua", "Efecto placebo"], answerIndex: 0, feedback: "La dosis tóxica produce efectos perjudiciales o letales." },
+  { text: "¿Qué medicamento se usa como anticolinérgico?", options: ["Atropina", "Paracetamol", "Insulina", "Furosemida"], answerIndex: 0, feedback: "La atropina bloquea receptores muscarínicos y aumenta la frecuencia cardíaca." },
+  { text: "¿Cuál es el uso principal de la digoxina?", options: ["Insuficiencia cardíaca", "Asma", "Gastritis", "Hipertensión leve"], answerIndex: 0, feedback: "La digoxina mejora la contractilidad cardíaca en la insuficiencia cardíaca." },
+  { text: "¿Qué significa farmacogenética?", options: ["Estudio de cómo los genes afectan la respuesta a los fármacos", "Estudio del metabolismo hepático", "Estudio del efecto placebo", "Estudio del pH sanguíneo"], answerIndex: 0, feedback: "La farmacogenética estudia cómo la variación genética modifica la eficacia o toxicidad de un fármaco." },
+  { text: "¿Qué tipo de fármaco es el ibuprofeno?", options: ["Antiinflamatorio no esteroideo (AINE)", "Antidepresivo", "Ansiolítico", "Antihistamínico"], answerIndex: 0, feedback: "El ibuprofeno reduce inflamación, fiebre y dolor inhibiendo COX-1 y COX-2." },
+  { text: "¿Cuál es la función principal del suero glucosalino?", options: ["Rehidratación y aporte energético", "Antibiótico", "Analgésico", "Sedante"], answerIndex: 0, feedback: "El suero glucosalino restituye líquidos, electrolitos y energía." },
+  { text: "¿Qué es una reacción alérgica medicamentosa?", options: ["Respuesta inmunitaria anormal a un fármaco", "Toxicidad directa", "Efecto placebo", "Hipotensión fisiológica"], answerIndex: 0, feedback: "Las alergias se deben a una respuesta inmunitaria exagerada al fármaco." },
+  { text: "¿Cuál es un efecto secundario de los corticoides a largo plazo?", options: ["Aumento de peso y osteoporosis", "Hipotensión", "Hipotermia", "Anemia"], answerIndex: 0, feedback: "El uso prolongado de corticoides puede causar retención de líquidos y desmineralización ósea." },
+  { text: "¿Qué fármaco se usa para reducir el colesterol?", options: ["Atorvastatina", "Paracetamol", "Enalapril", "Diazepam"], answerIndex: 0, feedback: "La atorvastatina inhibe la síntesis de colesterol en el hígado." },
+  { text: "¿Qué es un excipiente?", options: ["Sustancia inactiva que acompaña al principio activo", "Sustancia tóxica", "Receptor celular", "Enzima hepática"], answerIndex: 0, feedback: "El excipiente facilita la administración del principio activo sin tener acción terapéutica." },
+  { text: "¿Cuál es el mecanismo de acción de los bloqueadores de canales de calcio?", options: ["Reducen la entrada de calcio en células musculares", "Aumentan el sodio intracelular", "Inhiben la glucólisis", "Estimulan el sistema nervioso central"], answerIndex: 0, feedback: "Los bloqueadores de canales de calcio relajan el músculo liso vascular y reducen la presión arterial." },
+  { text: "¿Qué medicamento se usa para tratar la tuberculosis?", options: ["Isoniazida", "Amoxicilina", "Ciprofloxacino", "Penicilina"], answerIndex: 0, feedback: "La isoniazida inhibe la síntesis de ácidos micólicos de la pared bacteriana del Mycobacterium tuberculosis." },
+  { text: "¿Qué tipo de medicamento es la heparina?", options: ["Anticoagulante", "Analgésico", "Antibiótico", "Ansiolítico"], answerIndex: 0, feedback: "La heparina impide la formación de coágulos sanguíneos al activar la antitrombina III." },
+  { text: "¿Qué fármaco se usa como antiemético?", options: ["Metoclopramida", "Amoxicilina", "Diazepam", "Omeprazol"], answerIndex: 0, feedback: "La metoclopramida bloquea receptores dopaminérgicos reduciendo náuseas y vómitos." },
+  { text: "¿Qué medicamento es un antitusivo?", options: ["Dextrometorfano", "Salbutamol", "Amoxicilina", "Ibuprofeno"], answerIndex: 0, feedback: "El dextrometorfano inhibe el reflejo de la tos a nivel central." },
+  { text: "¿Qué es la farmacoterapia?", options: ["Uso de medicamentos para tratar enfermedades", "Estudio del metabolismo", "Uso de vacunas", "Técnica quirúrgica"], answerIndex: 0, feedback: "La farmacoterapia aplica los conocimientos farmacológicos para tratar o prevenir enfermedades." },
+  { text: "¿Qué es un medicamento genérico?", options: ["Contiene el mismo principio activo que el original", "Contiene diferentes excipientes activos", "Es experimental", "Tiene menor biodisponibilidad"], answerIndex: 0, feedback: "Los genéricos tienen la misma eficacia, seguridad y dosis que los de marca." },
+  { text: "¿Qué significa dosis mínima eficaz?", options: ["Cantidad más baja que produce efecto terapéutico", "Dosis máxima segura", "Dosis letal", "Dosis inactiva"], answerIndex: 0, feedback: "Es la menor cantidad necesaria para generar el efecto deseado." },
+  { text: "¿Cuál es el efecto adverso más común de los antibióticos aminoglucósidos?", options: ["Nefrotoxicidad y ototoxicidad", "Sedación", "Hipotensión", "Fiebre"], answerIndex: 0, feedback: "Los aminoglucósidos pueden dañar el riñón y el oído interno." },
+  { text: "¿Qué tipo de fármaco es el ácido acetilsalicílico?", options: ["AINE y antiplaquetario", "Antibiótico", "Ansiolítico", "Antidepresivo"], answerIndex: 0, feedback: "El ácido acetilsalicílico inhibe la COX y reduce la agregación plaquetaria." },
+  { text: "¿Qué medicamento se usa para revertir la bradicardia severa?", options: ["Atropina", "Adrenalina", "Furosemida", "Enalapril"], answerIndex: 0, feedback: "La atropina bloquea el vago, aumentando la frecuencia cardíaca." },
+  { text: "¿Qué fármaco se utiliza en el tratamiento de la esquizofrenia?", options: ["Haloperidol", "Omeprazol", "Paracetamol", "Amoxicilina"], answerIndex: 0, feedback: "El haloperidol bloquea receptores dopaminérgicos D2, reduciendo síntomas psicóticos." },
+  { text: "¿Qué es un medicamento de acción prolongada?", options: ["Permanece más tiempo en el cuerpo", "Actúa solo localmente", "No tiene efecto sistémico", "Se elimina rápidamente"], answerIndex: 0, feedback: "Su formulación permite liberación lenta del principio activo." },
+  { text: "¿Qué tipo de medicamento es la clorfenamina?", options: ["Antihistamínico", "Antibiótico", "Antidepresivo", "Ansiolítico"], answerIndex: 0, feedback: "La clorfenamina bloquea los receptores H1 para reducir síntomas de alergia." },
+  { text: "¿Cuál es la vía más utilizada para administrar medicamentos?", options: ["Oral", "Intramuscular", "Intravenosa", "Subcutánea"], answerIndex: 0, feedback: "La vía oral es la más común por su comodidad y seguridad." },
+  { text: "¿Qué significa dosis letal media (DL50)?", options: ["Dosis que mata al 50% de los individuos", "Dosis terapéutica promedio", "Dosis mínima eficaz", "Dosis de mantenimiento"], answerIndex: 0, feedback: "La DL50 es una medida de toxicidad usada en estudios experimentales." },
+  { text: "¿Qué medicamento es un antiepiléptico?", options: ["Carbamazepina", "Ibuprofeno", "Amoxicilina", "Diazepam"], answerIndex: 0, feedback: "La carbamazepina estabiliza la actividad neuronal y previene convulsiones." },
+  { text: "¿Qué fármaco se usa para tratar la ansiedad?", options: ["Lorazepam", "Omeprazol", "Amoxicilina", "Enalapril"], answerIndex: 0, feedback: "El lorazepam es una benzodiacepina de acción ansiolítica y sedante." },
+  { text: "¿Qué es la farmacocinética clínica?", options: ["Aplicación de la farmacocinética para ajustar dosis al paciente", "Estudio experimental", "Evaluación de toxicidad", "Control de temperatura"], answerIndex: 0, feedback: "La farmacocinética clínica adapta la dosis a características individuales del paciente." },
+  { text: "¿Qué medicamento se usa como broncodilatador de acción prolongada?", options: ["Salmeterol", "Paracetamol", "Amoxicilina", "Metoclopramida"], answerIndex: 0, feedback: "El salmeterol mantiene abierta la vía aérea durante horas en pacientes asmáticos." },
+  { text: "¿Qué tipo de fármaco es la lidocaína?", options: ["Anestésico local", "Antihistamínico", "Ansiolítico", "Antibiótico"], answerIndex: 0, feedback: "La lidocaína bloquea los canales de sodio, evitando la conducción nerviosa." },
+  { text: "¿Cuál es el principal uso del ácido fólico?", options: ["Prevención de defectos del tubo neural", "Tratamiento de la anemia hemolítica", "Hipertensión", "Alergias"], answerIndex: 0, feedback: "El ácido fólico previene malformaciones congénitas y ayuda a la producción de glóbulos rojos." },
+  { text: "¿Qué es un efecto secundario?", options: ["Efecto no deseado pero relacionado con la acción del fármaco", "Reacción alérgica", "Efecto placebo", "Efecto letal"], answerIndex: 0, feedback: "Los efectos secundarios son previsibles y dependen del mecanismo del fármaco." },
+  { text: "¿Qué fármaco se utiliza para reducir la ansiedad antes de una cirugía?", options: ["Midazolam", "Omeprazol", "Paracetamol", "Amoxicilina"], answerIndex: 0, feedback: "El midazolam es un ansiolítico y sedante de acción rápida usado en premedicación quirúrgica." },
+  { text: "¿Qué tipo de medicamento es la metadona?", options: ["Opioide sintético", "Antibiótico", "Ansiolítico", "Antihipertensivo"], answerIndex: 0, feedback: "La metadona es un opioide usado para el control del dolor y la desintoxicación." },
+  { text: "¿Qué significa farmacorresistencia?", options: ["Pérdida de eficacia de un fármaco en el tiempo", "Aumento de la toxicidad", "Efecto sinérgico", "Dependencia"], answerIndex: 0, feedback: "La farmacorresistencia ocurre cuando el organismo o microorganismo deja de responder al tratamiento." },
+  { text: "¿Qué medicamento se usa como vasodilatador en angina de pecho?", options: ["Nitroglicerina", "Atropina", "Enalapril", "Furosemida"], answerIndex: 0, feedback: "La nitroglicerina libera óxido nítrico, relajando el músculo vascular." },
+  { text: "¿Qué es un principio activo?", options: ["Sustancia responsable del efecto terapéutico", "Sustancia inerte", "Colorante del medicamento", "Excipiente"], answerIndex: 0, feedback: "El principio activo es el componente químico que produce la acción terapéutica." },
+  { text: "¿Qué fármaco es un antiagregante plaquetario?", options: ["Clopidogrel", "Furosemida", "Paracetamol", "Amoxicilina"], answerIndex: 0, feedback: "El clopidogrel impide la agregación plaquetaria y previene trombos." },
+  { text: "¿Qué tipo de fármaco es la eritromicina?", options: ["Antibiótico macrólido", "Antihipertensivo", "Antifúngico", "Ansiolítico"], answerIndex: 0, feedback: "La eritromicina inhibe la síntesis proteica bacteriana." },
+  { text: "¿Qué medicamento se usa como hipoglucemiante oral?", options: ["Glibenclamida", "Omeprazol", "Amoxicilina", "Paracetamol"], answerIndex: 0, feedback: "La glibenclamida estimula la liberación de insulina en el páncreas." },
+  { text: "¿Qué es un medicamento de acción tópica?", options: ["Actúa localmente en la zona de aplicación", "Se distribuye sistémicamente", "Tiene efecto prolongado", "Es oral"], answerIndex: 0, feedback: "Los fármacos tópicos actúan sobre la piel o mucosas sin pasar a la circulación general." },
+  { text: "¿Qué fármaco se utiliza como antidepresivo tricíclico?", options: ["Amitriptilina", "Furosemida", "Amoxicilina", "Diazepam"], answerIndex: 0, feedback: "La amitriptilina inhibe la recaptación de serotonina y noradrenalina." },
+  { text: "¿Qué es un efecto idiosincrático?", options: ["Reacción inesperada debida a predisposición genética", "Efecto placebo", "Reacción alérgica leve", "Tolerancia"], answerIndex: 0, feedback: "Los efectos idiosincráticos son respuestas anormales individuales al fármaco." },
+  { text: "¿Qué tipo de medicamento es el ranitidina?", options: ["Antagonista H2", "Antibiótico", "Ansiolítico", "Analgésico"], answerIndex: 0, feedback: "La ranitidina reduce la secreción ácida gástrica bloqueando los receptores H2." },
+  { text: "¿Qué medicamento se utiliza como antipalúdico?", options: ["Cloroquina", "Amoxicilina", "Furosemida", "Ibuprofeno"], answerIndex: 0, feedback: "La cloroquina se usa para prevenir y tratar la malaria." },
+  { text: "¿Qué es la curva dosis-respuesta?", options: ["Relación entre dosis administrada y efecto obtenido", "Curva de excreción", "Línea de absorción intestinal", "Distribución del fármaco"], answerIndex: 0, feedback: "Permite estudiar cómo varía el efecto del fármaco con la dosis." },
+  { text: "¿Qué tipo de medicamento es la cefalexina?", options: ["Antibiótico cefalosporínico", "Ansiolítico", "Antihipertensivo", "Analgésico"], answerIndex: 0, feedback: "La cefalexina es una cefalosporina usada para infecciones bacterianas comunes." },
+  { text: "¿Qué medicamento se usa como antiulceroso?", options: ["Omeprazol", "Paracetamol", "Enalapril", "Amoxicilina"], answerIndex: 0, feedback: "El omeprazol inhibe la bomba de protones, reduciendo la secreción ácida gástrica." },
+  { 
+    text: "¿Cuál es el mecanismo de acción principal de los inhibidores de la ECA?", 
+    options: ["Bloqueo de receptores beta", "Inhibición de la conversión de angiotensina I a II", "Estimulación de receptores alfa", "Aumento de renina"], 
+    answerIndex: 1,
+    feedback: "Los inhibidores de la ECA impiden que la angiotensina I se convierta en angiotensina II, reduciendo la vasoconstricción."
+  },
+  { 
+    text: "¿Qué fármaco se considera de primera elección para la hipertensión en pacientes diabéticos?", 
+    options: ["Furosemida", "Captopril", "Atenolol", "Hidralazina"], 
+    answerIndex: 1,
+    feedback: "Los inhibidores de la ECA, como el captopril, protegen la función renal en pacientes diabéticos."
+  },
+  { 
+    text: "¿Cuál de los siguientes antibióticos pertenece a la clase de aminoglucósidos?", 
+    options: ["Gentamicina", "Cefalexina", "Eritromicina", "Amoxicilina"], 
+    answerIndex: 0,
+    feedback: "La gentamicina es un aminoglucósido que actúa inhibiendo la síntesis proteica bacteriana."
+  },
+  { 
+    text: "¿Qué efecto adverso es más común en los antagonistas del receptor H2?", 
+    options: ["Hipotensión grave", "Confusión y cefalea", "Arritmias cardíacas", "Hiperpotasemia"], 
+    answerIndex: 1,
+    feedback: "Los antagonistas H2 pueden provocar efectos neurológicos como cefalea y confusión, especialmente en ancianos."
+  },
+  { 
+    text: "El fármaco warfarina actúa principalmente inhibiendo:", 
+    options: ["Factor Xa", "Vitamina K epóxido reductasa", "Trombina", "Fibrinógeno"], 
+    answerIndex: 1,
+    feedback: "La warfarina inhibe la vitamina K epóxido reductasa, reduciendo la síntesis de factores de coagulación dependientes de vitamina K."
+  },
+  { 
+    text: "¿Cuál de los siguientes es un inhibidor selectivo de la recaptación de serotonina (ISRS)?", 
+    options: ["Fluoxetina", "Amitriptilina", "Fenelzina", "Clorpromazina"], 
+    answerIndex: 0,
+    feedback: "La fluoxetina es un ISRS que aumenta los niveles de serotonina en la sinapsis."
+  },
+  { 
+    text: "¿Qué medicamento se utiliza como antagonista de benzodiacepinas en sobredosis?", 
+    options: ["Flumazenilo", "Naloxona", "Fisostigmina", "Atropina"], 
+    answerIndex: 0,
+    feedback: "El flumazenilo es un antagonista específico de las benzodiacepinas, utilizado en sobredosis."
+  },
+  { 
+    text: "¿Cuál es el efecto principal de los diuréticos tiazídicos?", 
+    options: ["Aumentar la excreción de sodio y agua", "Disminuir la secreción de renina", "Bloquear receptores beta", "Inhibir la aldosterona"], 
+    answerIndex: 0,
+    feedback: "Los tiazídicos aumentan la excreción renal de sodio y agua, reduciendo la presión arterial."
+  },
+  { 
+    text: "La digoxina actúa principalmente inhibiendo:", 
+    options: ["Bomba Na+/K+", "Canal de calcio L", "Receptor beta-adrenérgico", "ATPasa de Cloro"], 
+    answerIndex: 0,
+    feedback: "La digoxina inhibe la bomba Na+/K+, aumentando el calcio intracelular y mejorando la contractilidad cardíaca."
+  },
+  { 
+    text: "¿Cuál es el fármaco de elección en la profilaxis de migraña aguda?", 
+    options: ["Sumatriptán", "Atenolol", "Paracetamol", "Ibuprofeno"], 
+    answerIndex: 0,
+    feedback: "El sumatriptán es un agonista selectivo de receptores 5-HT1B/1D utilizado para el tratamiento agudo de migraña."
+  },
+  { 
+    text: "¿Qué antibiótico se considera de elección para la neumonía adquirida en la comunidad?", 
+    options: ["Azitromicina", "Vancomicina", "Ciprofloxacino", "Gentamicina"], 
+    answerIndex: 0,
+    feedback: "La azitromicina es recomendada por guías para la neumonía adquirida en la comunidad en pacientes sin comorbilidades graves."
+  },
+  { 
+    text: "Los inhibidores de la bomba de protones actúan principalmente sobre:", 
+    options: ["Receptores H2", "ATPasa H+/K+ de células parietales", "Acetilcolina muscarínica", "Receptores alfa 1"], 
+    answerIndex: 1,
+    feedback: "Inhiben la ATPasa H+/K+ de las células parietales, bloqueando la secreción de ácido gástrico."
+  },
+  { 
+    text: "El fármaco clopidogrel es un:", 
+    options: ["Anticoagulante oral", "Antiplaquetario", "Fibrinolítico", "Beta-bloqueador"], 
+    answerIndex: 1,
+    feedback: "El clopidogrel inhibe la agregación plaquetaria al bloquear los receptores P2Y12 de ADP."
+  },
+  { 
+    text: "¿Qué clase de fármacos incluye la amitriptilina?", 
+    options: ["ISRS", "Tricíclicos", "IMAO", "Benzodiacepinas"], 
+    answerIndex: 1,
+    feedback: "La amitriptilina es un antidepresivo tricíclico que inhibe la recaptación de serotonina y noradrenalina."
+  },
+  { 
+    text: "¿Cuál es el efecto adverso más preocupante de la doxorubicina?", 
+    options: ["Cardiotoxicidad", "Neurotoxicidad", "Hepatotoxicidad", "Nefrotoxicidad"], 
+    answerIndex: 0,
+    feedback: "La doxorubicina puede causar cardiomiopatía irreversible, siendo su efecto adverso más crítico."
+  },
+  { 
+    text: "Los fármacos inhibidores de la fosfodiesterasa tipo 5 (PDE5) se utilizan principalmente para:", 
+    options: ["Hipertensión pulmonar y disfunción eréctil", "Arritmias cardíacas", "Insuficiencia renal", "Hipotiroidismo"], 
+    answerIndex: 0,
+    feedback: "Los inhibidores de PDE5, como sildenafil, aumentan cGMP y producen vasodilatación en corpus cavernosum y arterias pulmonares."
+  },
+  { 
+    text: "¿Cuál de los siguientes antibióticos se une a la subunidad 30S del ribosoma?", 
+    options: ["Gentamicina", "Cloranfenicol", "Eritromicina", "Ceftriaxona"], 
+    answerIndex: 0,
+    feedback: "La gentamicina se une a la subunidad 30S, inhibiendo la síntesis proteica bacteriana."
+  },
+  { 
+    text: "El uso prolongado de corticosteroides puede causar:", 
+    options: ["Hipertensión, osteoporosis y diabetes", "Arritmias cardíacas", "Neumonía viral", "Anemia aplásica"], 
+    answerIndex: 0,
+    feedback: "El uso crónico de corticosteroides puede provocar múltiples efectos adversos sistémicos, como hipertensión y osteoporosis."
+  },
+  { 
+    text: "¿Qué fármaco es un antagonista del receptor de angiotensina II?", 
+    options: ["Losartán", "Captopril", "Furosemida", "Espironolactona"], 
+    answerIndex: 0,
+    feedback: "Losartán bloquea los receptores AT1 de angiotensina II, reduciendo la vasoconstricción y la secreción de aldosterona."
+  },
+  { 
+    text: "¿Cuál de los siguientes fármacos se usa para la anticoagulación en pacientes con fibrilación auricular?", 
+    options: ["Warfarina", "Atenolol", "Furosemida", "Digoxina"], 
+    answerIndex: 0,
+    feedback: "La warfarina se utiliza para prevenir eventos tromboembólicos en fibrilación auricular."
+  },
+  { 
+    text: "¿Qué fármaco antihipertensivo se considera seguro durante el embarazo?", 
+    options: ["Metildopa", "Enalapril", "Losartán", "Atenolol"], 
+    answerIndex: 0,
+    feedback: "La metildopa es un antihipertensivo de elección durante el embarazo por su seguridad fetal."
+  },
+  { 
+    text: "El fármaco furosemida actúa principalmente sobre:", 
+    options: ["Asa de Henle", "Túbulo contorneado distal", "Túbulo contorneado proximal", "Colector renal"], 
+    answerIndex: 0,
+    feedback: "La furosemida es un diurético de asa que inhibe la reabsorción de Na+, K+ y Cl- en la rama ascendente del asa de Henle."
+  },
+  { 
+    text: "¿Cuál de los siguientes fármacos es un antagonista de receptores beta-adrenérgicos?", 
+    options: ["Propranolol", "Albuterol", "Isoproterenol", "Dopamina"], 
+    answerIndex: 0,
+    feedback: "El propranolol bloquea receptores beta, disminuyendo frecuencia cardíaca y contractilidad."
+  },
+  { 
+    text: "¿Qué fármaco se utiliza como tratamiento de primera línea para hipotiroidismo?", 
+    options: ["Levotiroxina", "Metimazol", "Propiltiouracilo", "Liotironina"], 
+    answerIndex: 0,
+    feedback: "La levotiroxina es la forma sintética de T4 y se usa como tratamiento estándar para hipotiroidismo."
+  },
+  { 
+    text: "¿Cuál es el efecto adverso más frecuente de la heparina?", 
+    options: ["Trombocitopenia", "Hipertensión", "Hipoglucemia", "Hiperpotasemia"], 
+    answerIndex: 0,
+    feedback: "La trombocitopenia inducida por heparina es un efecto adverso grave a vigilar durante el tratamiento."
+  },
+  { 
+    text: "El omeprazol pertenece a la clase de:", 
+    options: ["Inhibidores de bomba de protones", "Antagonistas H2", "Anticolinérgicos", "Antiácidos"], 
+    answerIndex: 0,
+    feedback: "El omeprazol inhibe la ATPasa H+/K+ de las células parietales, reduciendo la secreción de ácido gástrico."
+  },
+  { 
+    text: "¿Qué antibiótico se considera de elección para tuberculosis activa?", 
+    options: ["Isoniazida", "Amoxicilina", "Eritromicina", "Ceftriaxona"], 
+    answerIndex: 0,
+    feedback: "La isoniazida es un fármaco bactericida que inhibe la síntesis de la pared celular de Mycobacterium tuberculosis."
+  },
+  { 
+    text: "El fármaco morfina actúa principalmente sobre:", 
+    options: ["Receptores opioides mu", "Receptores GABA", "Canales de calcio", "Receptores dopaminérgicos"], 
+    answerIndex: 0,
+    feedback: "La morfina es un agonista de receptores mu opioides, produciendo analgesia y euforia."
+  },
+  { 
+    text: "¿Cuál de los siguientes antibióticos es bacteriostático?", 
+    options: ["Cloranfenicol", "Penicilina", "Gentamicina", "Ceftriaxona"], 
+    answerIndex: 0,
+    feedback: "El cloranfenicol inhibe la síntesis proteica bacteriana sin destruir directamente la bacteria, siendo bacteriostático."
+  },
+  { 
+    text: "¿Qué fármaco se utiliza en la reversión de anticoagulación por warfarina?", 
+    options: ["Vitamina K", "Protamina", "Heparina", "Aspirina"], 
+    answerIndex: 0,
+    feedback: "La vitamina K restaura la síntesis de factores de coagulación dependientes de vitamina K, revirtiendo la anticoagulación."
+  },
+  { 
+    text: "¿Qué fármaco antiepiléptico tiene mayor riesgo de hepatotoxicidad?", 
+    options: ["Valproato", "Carbamazepina", "Fenitoína", "Levetiracetam"], 
+    answerIndex: 0,
+    feedback: "El valproato puede causar daño hepático grave, especialmente en pacientes pediátricos."
+  },
+  { 
+    text: "¿Cuál de los siguientes fármacos es un inhibidor de la recaptación de noradrenalina y dopamina (NDRI)?", 
+    options: ["Bupropión", "Fluoxetina", "Amitriptilina", "Sertralina"], 
+    answerIndex: 0,
+    feedback: "El bupropión inhibe la recaptación de noradrenalina y dopamina, utilizado en depresión y cesación tabáquica."
+  },
+  { 
+    text: "El metotrexato se utiliza principalmente como:", 
+    options: ["Antineoplásico y antirreumático", "Antibiótico", "Antihipertensivo", "Diurético"], 
+    answerIndex: 0,
+    feedback: "El metotrexato inhibe la síntesis de folato, usado en cáncer y enfermedades autoinmunes."
+  },
+  { 
+    text: "¿Qué fármaco se usa en la prevención de la enfermedad tromboembólica venosa en pacientes hospitalizados?", 
+    options: ["Enoxaparina", "Warfarina", "Aspirina", "Clopidogrel"], 
+    answerIndex: 0,
+    feedback: "La enoxaparina es una heparina de bajo peso molecular utilizada para profilaxis tromboembólica."
+  },
+  { 
+    text: "¿Cuál es el principal efecto adverso de los inhibidores de la aromatasa?", 
+    options: ["Osteoporosis", "Hipertensión", "Bradicardia", "Hiperpotasemia"], 
+    answerIndex: 0,
+    feedback: "Los inhibidores de la aromatasa reducen estrógenos, aumentando riesgo de pérdida ósea."
+  },
+  { 
+    text: "¿Qué fármaco se considera primera línea para la profilaxis de migraña crónica?", 
+    options: ["Topiramato", "Paracetamol", "Ibuprofeno", "Sumatriptán"], 
+    answerIndex: 0,
+    feedback: "El topiramato se utiliza como profilaxis para migraña crónica, reduciendo la frecuencia de los ataques."
+  },
+  { 
+    text: "La insulina glargina se clasifica como:", 
+    options: ["Insulina de acción prolongada", "Insulina rápida", "Insulina intermedia", "Insulina mixta"], 
+    answerIndex: 0,
+    feedback: "La insulina glargina tiene efecto prolongado, proporcionando un nivel basal estable de insulina."
+  },
+  { 
+    text: "¿Cuál es el efecto adverso más frecuente de los inhibidores de la HMG-CoA reductasa?", 
+    options: ["Miopatía", "Hipotensión", "Hipoglucemia", "Trombocitopenia"], 
+    answerIndex: 0,
+    feedback: "Las estatinas pueden causar miopatía y, en casos raros, rabdomiólisis."
+  },
+  { 
+    text: "¿Qué fármaco bloquea selectivamente los receptores H1?", 
+    options: ["Loratadina", "Omeprazol", "Cimetidina", "Furosemida"], 
+    answerIndex: 0,
+    feedback: "La loratadina es un antihistamínico H1 utilizado para alergias sin causar sedación significativa."
+  },
+  { 
+    text: "¿Cuál de los siguientes fármacos se utiliza en la fibrilación ventricular?", 
+    options: ["Amiodarona", "Propranolol", "Digoxina", "Atenolol"], 
+    answerIndex: 0,
+    feedback: "La amiodarona es un antiarrítmico de elección para fibrilación ventricular y taquicardias ventriculares."
+  },
+  { 
+    text: "¿Cuál de los siguientes antibióticos es eficaz contra MRSA?", 
+    options: ["Vancomicina", "Amoxicilina", "Cefalexina", "Eritromicina"], 
+    answerIndex: 0,
+    feedback: "La vancomicina es un glicopéptido utilizado contra Staphylococcus aureus resistente a meticilina."
+  },
+  { 
+    text: "¿Qué fármaco se utiliza para revertir el efecto de heparina no fraccionada?", 
+    options: ["Protamina", "Vitamina K", "Aspirina", "Clopidogrel"], 
+    answerIndex: 0,
+    feedback: "La protamina neutraliza la heparina no fraccionada formando un complejo inactivo."
+  },
+  { 
+    text: "La fenitoína tiene un efecto adverso característico en:", 
+    options: ["Gingivitis hipertrófica", "Hipoglucemia", "Hiperpotasemia", "Bradicardia"], 
+    answerIndex: 0,
+    feedback: "El uso crónico de fenitoína puede causar hiperplasia gingival, especialmente en pacientes jóvenes."
+  },
+  { 
+    text: "¿Qué antibiótico se considera de elección para infecciones por Pseudomonas aeruginosa?", 
+    options: ["Piperacilina-tazobactam", "Amoxicilina", "Ceftriaxona", "Eritromicina"], 
+    answerIndex: 0,
+    feedback: "La piperacilina-tazobactam es efectiva contra Pseudomonas aeruginosa y otros bacilos Gram negativos."
+  },
+  { 
+    text: "¿Cuál de los siguientes fármacos puede causar síndrome serotoninérgico si se combina con un IMAO?", 
+    options: ["Fluoxetina", "Amitriptilina", "Ciprofloxacino", "Benzodiacepinas"], 
+    answerIndex: 0,
+    feedback: "La combinación de ISRS como fluoxetina con IMAO puede provocar síndrome serotoninérgico, que es potencialmente fatal."
+  }
+      ],
+      Anatomía: [
+      { 
+    text: "¿Cuál es el nervio craneal responsable de la inervación motora de la lengua?", 
+    options: ["Hipogloso (XII)", "Vago (X)", "Glosofaríngeo (IX)", "Trigemino (V)"], 
+    answerIndex: 0,
+    feedback: "El nervio hipogloso (XII) inerva la musculatura extrínseca e intrínseca de la lengua."
+  },
+  { 
+    text: "¿Qué arteria irriga principalmente la porción lateral del lóbulo frontal del cerebro?", 
+    options: ["Arteria cerebral media", "Arteria cerebral anterior", "Arteria cerebral posterior", "Arteria basilar"], 
+    answerIndex: 0,
+    feedback: "La arteria cerebral media irriga la mayoría de la corteza lateral de los lóbulos frontal y parietal."
+  },
+  { 
+    text: "El ligamento redondo del útero es remanente de:", 
+    options: ["Conducto gubernacular", "Conducto de Wolff", "Conducto de Müller", "Ligamento ancho"], 
+    answerIndex: 0,
+    feedback: "El ligamento redondo es un remanente del gubernaculum que mantiene la posición del útero."
+  },
+  { 
+    text: "¿Cuál de los músculos del manguito rotador se inserta en el tubérculo mayor del húmero?", 
+    options: ["Supraespinoso", "Subescapular", "Redondo menor", "Dorsal ancho"], 
+    answerIndex: 0,
+    feedback: "El supraespinoso se inserta en el tubérculo mayor y ayuda en la abducción del brazo."
+  },
+  { 
+    text: "¿Qué estructura pasa por el agujero yugular del cráneo?", 
+    options: ["Vena yugular interna, nervio glosofaríngeo, vago y accesorio", "Nervio óptico y arteria oftálmica", "Arteria carótida interna y seno cavernoso", "Nervio trigémino"], 
+    answerIndex: 0,
+    feedback: "El agujero yugular permite el paso de la vena yugular interna y los nervios IX, X y XI."
+  },
+  { 
+    text: "El músculo piriforme se encuentra en relación con:", 
+    options: ["Nervio ciático", "Arteria femoral", "Vena safena", "Nervio obturador"], 
+    answerIndex: 0,
+    feedback: "El nervio ciático pasa generalmente por debajo del músculo piriforme, aunque puede variar anatómicamente."
+  },
+  { 
+    text: "¿Cuál es la función principal del músculo deltoides?", 
+    options: ["Abducción del brazo", "Flexión de la muñeca", "Extensión de la rodilla", "Rotación interna del hombro"], 
+    answerIndex: 0,
+    feedback: "El deltoides es el principal abductor del brazo a partir de los 15° de elevación."
+  },
+  { 
+    text: "El nervio mediano es responsable de la inervación sensitiva de:", 
+    options: ["Primer, segundo, tercero y mitad del cuarto dedo", "Quinto dedo", "Cara dorsal de la mano", "Región lateral del brazo"], 
+    answerIndex: 0,
+    feedback: "El nervio mediano inerva la piel de la palma y la superficie palmar de los cuatro primeros dedos, parcialmente el cuarto dedo."
+  },
+  { 
+    text: "¿Cuál de las siguientes estructuras atraviesa el foramen magnum?", 
+    options: ["Bulbo raquídeo, arterias vertebrales, meninges", "Nervio óptico", "Arteria carótida interna", "Tracto olfatorio"], 
+    answerIndex: 0,
+    feedback: "El foramen magnum permite la comunicación entre el encéfalo y la médula espinal, incluyendo arterias vertebrales y meninges."
+  },
+  { 
+    text: "El ligamento cruzado anterior evita:", 
+    options: ["Desplazamiento anterior de la tibia respecto al fémur", "Desplazamiento posterior de la tibia", "Rotación externa de la rodilla", "Hipertensión del tobillo"], 
+    answerIndex: 0,
+    feedback: "El LCA se opone al desplazamiento anterior de la tibia sobre el fémur, estabilizando la rodilla."
+  },
+  { 
+    text: "¿Qué tipo de articulación es la radio-cubital proximal?", 
+    options: ["Trocoide o pivot", "Esferoidea", "Silla de montar", "Plana"], 
+    answerIndex: 0,
+    feedback: "La articulación radio-cubital proximal permite la pronosupinación del antebrazo."
+  },
+  { 
+    text: "El músculo psoas mayor se inserta en:", 
+    options: ["Trocánter menor del fémur", "Espina ilíaca anterior superior", "Tuberosidad isquiática", "Cresta ilíaca"], 
+    answerIndex: 0,
+    feedback: "El psoas mayor se inserta en el trocánter menor del fémur, actuando como flexor de cadera."
+  },
+  { 
+    text: "La arteria coronaria derecha irriga principalmente:", 
+    options: ["Aurícula derecha, ventrículo derecho, nodo sinoauricular", "Ventrículo izquierdo", "Corteza cerebral", "Riñón"], 
+    answerIndex: 0,
+    feedback: "La arteria coronaria derecha irriga la mayor parte del ventrículo derecho y el nodo SA en la mayoría de las personas."
+  },
+  { 
+    text: "¿Qué estructura forma el límite anterior del triángulo femoral?", 
+    options: ["Ligamento inguinal", "Músculo sartorio", "Músculo aductor largo", "Músculo recto femoral"], 
+    answerIndex: 0,
+    feedback: "El ligamento inguinal forma el límite superior y anterior del triángulo femoral."
+  },
+  { 
+    text: "¿Qué nervio inerva el diafragma?", 
+    options: ["Nervio frénico", "Nervio vago", "Nervio intercostal", "Nervio accesorio"], 
+    answerIndex: 0,
+    feedback: "El nervio frénico (C3-C5) es el principal motor del diafragma."
+  },
+  { 
+    text: "El ligamento anular del radio mantiene:", 
+    options: ["La cabeza del radio en la incisura radial del cúbito", "El húmero en la cavidad glenoidea", "El fémur en la articulación de cadera", "La tibia en la articulación de rodilla"], 
+    answerIndex: 0,
+    feedback: "El ligamento anular rodea la cabeza del radio y permite su rotación en la articulación proximal del antebrazo."
+  },
+  { 
+    text: "¿Cuál de los siguientes músculos contribuye a la elevación de la escápula?", 
+    options: ["Trapecio y elevador de la escápula", "Deltoides y pectoral mayor", "Serrato anterior y dorsal ancho", "Romboides menor y mayor"], 
+    answerIndex: 0,
+    feedback: "El trapecio superior y el elevador de la escápula elevan la escápula y estabilizan el hombro."
+  },
+  { 
+    text: "La arteria cerebral posterior se origina de:", 
+    options: ["Arteria basilar", "Arteria carótida interna", "Arteria subclavia", "Arteria vertebral"], 
+    answerIndex: 0,
+    feedback: "La arteria cerebral posterior nace de la arteria basilar y suministra la parte posterior del cerebro."
+  },
+  { 
+    text: "El plexo braquial se forma a partir de:", 
+    options: ["Ramos ventrales C5-T1", "Ramos dorsales C1-C5", "Ramos ventrales T2-T5", "Ramos dorsales L1-L5"], 
+    answerIndex: 0,
+    feedback: "El plexo braquial está formado por los ramos ventrales de C5 a T1 y da origen a todos los nervios del miembro superior."
+  },
+  { 
+    text: "El músculo tibial anterior tiene la función principal de:", 
+    options: ["Dorsiflexión del pie", "Flexión plantar", "Eversión del pie", "Inversión del pie"], 
+    answerIndex: 0,
+    feedback: "El tibial anterior permite levantar la parte anterior del pie y mantener el arco longitudinal."
+  },
+  { 
+    text: "¿Cuál de los siguientes huesos forma parte de la articulación temporomandibular?", 
+    options: ["Mandíbula y temporal", "Maxilar y cigomático", "Temporal y esfenoides", "Mandíbula y maxilar"], 
+    answerIndex: 0,
+    feedback: "La articulación temporomandibular conecta la mandíbula con el hueso temporal."
+  },
+  { 
+    text: "El líquido cerebroespinal se produce principalmente en:", 
+    options: ["Ventrículos laterales", "Espacio subaracnoideo", "Canal central de la médula", "Seno sagital"], 
+    answerIndex: 0,
+    feedback: "Los plexos coroideos de los ventrículos laterales producen la mayor parte del líquido cerebroespinal."
+  },
+  { 
+    text: "El conducto deferente transporta:", 
+    options: ["Espermatozoides desde el epidídimo hasta la uretra", "Hormonas desde el testículo", "Sangre desde el riñón", "Secreción prostática"], 
+    answerIndex: 0,
+    feedback: "El conducto deferente transporta los espermatozoides maduros desde el epidídimo hacia la uretra durante la eyaculación."
+  },
+  { 
+    text: "¿Qué estructura forma el piso de la cavidad nasal?", 
+    options: ["Paladar duro", "Paladar blando", "Velo del paladar", "Maxilar superior"], 
+    answerIndex: 0,
+    feedback: "El paladar duro forma la base ósea de la cavidad nasal, separándola de la cavidad oral."
+  },
+  { 
+    text: "El nervio ciático se origina de:", 
+    options: ["L4-S3", "L1-L4", "S1-S5", "L2-L5"], 
+    answerIndex: 0,
+    feedback: "El nervio ciático se forma por ramos ventrales de L4 a S3 y desciende por la región glútea y posterior del muslo."
+  },
+  { 
+    text: "¿Qué estructura conecta los ventrículos laterales con el tercer ventrículo?", 
+    options: ["Foramen interventricular (de Monro)", "Acueducto de Silvio", "Foramen de Luschka", "Foramen de Magendie"], 
+    answerIndex: 0,
+    feedback: "Los forámenes interventriculares permiten la comunicación entre los ventrículos laterales y el tercer ventrículo."
+  },
+  { 
+    text: "El músculo bíceps braquial realiza principalmente:", 
+    options: ["Flexión del codo y supinación del antebrazo", "Extensión del codo", "Abducción del hombro", "Rotación interna del hombro"], 
+    answerIndex: 0,
+    feedback: "El bíceps braquial flexiona el codo y supina el antebrazo."
+  },
+  { 
+    text: "La válvula mitral se encuentra entre:", 
+    options: ["Aurícula izquierda y ventrículo izquierdo", "Aurícula derecha y ventrículo derecho", "Ventrículo izquierdo y aorta", "Aurícula izquierda y vena cava"], 
+    answerIndex: 0,
+    feedback: "La válvula mitral controla el flujo de sangre entre la aurícula y el ventrículo izquierdo."
+  },
+  { 
+    text: "El ligamento cruzado posterior evita:", 
+    options: ["Desplazamiento posterior de la tibia respecto al fémur", "Desplazamiento anterior de la tibia", "Rotación interna de la rodilla", "Rotación externa del tobillo"], 
+    answerIndex: 0,
+    feedback: "El LCP evita que la tibia se desplace posteriormente respecto al fémur."
+  },
+  { 
+    text: "¿Cuál de las siguientes glándulas es endocrina y exocrina?", 
+    options: ["Páncreas", "Tiroides", "Paratiroides", "Suprarrenal"], 
+    answerIndex: 0,
+    feedback: "El páncreas secreta enzimas digestivas al duodeno y hormonas (insulina, glucagón) a la sangre."
+  },
+  { 
+    text: "La arteria coronaria izquierda se divide en:", 
+    options: ["Rama circunfleja y descendente anterior", "Rama derecha y marginal", "Rama posterior y lateral", "Tronco pulmonar y aorta"], 
+    answerIndex: 0,
+    feedback: "La coronaria izquierda se bifurca en la descendente anterior y la circunfleja, irrigando principalmente el ventrículo izquierdo."
+  },
+  { 
+    text: "El músculo recto femoral pertenece al grupo de:", 
+    options: ["Cuádriceps femoral", "Isquiotibiales", "Aductores del muslo", "Glúteos"], 
+    answerIndex: 0,
+    feedback: "El recto femoral es uno de los cuatro músculos del cuádriceps, responsable de la extensión de rodilla."
+  },
+  { 
+    text: "¿Qué estructura ósea forma la articulación del hombro junto con la cabeza humeral?", 
+    options: ["Cavidad glenoidea de la escápula", "Acromion", "Clavícula", "Apófisis coracoides"], 
+    answerIndex: 0,
+    feedback: "La cavidad glenoidea de la escápula se articula con la cabeza del húmero para formar la articulación glenohumeral."
+  },
+  { 
+    text: "El plexo lumbar se origina de:", 
+    options: ["Ramos ventrales de L1-L4", "Ramos dorsales C5-T1", "Ramos ventrales T2-T5", "Ramos dorsales S1-S5"], 
+    answerIndex: 0,
+    feedback: "El plexo lumbar está formado por ramos ventrales de L1 a L4 y da nervios al miembro inferior anterior y medial."
+  },
+  { 
+    text: "El hueso hioides se encuentra:", 
+    options: ["Entre la mandíbula y la laringe", "En la base del cráneo", "En el tórax", "En la pelvis"], 
+    answerIndex: 0,
+    feedback: "El hioides es un hueso flotante que sirve de inserción para músculos de la lengua y la faringe."
+  },
+  { 
+    text: "¿Qué nervio inerva los músculos extensores de la muñeca y los dedos?", 
+    options: ["Radial", "Mediano", "Cubital", "Musculocutáneo"], 
+    answerIndex: 0,
+    feedback: "El nervio radial controla la extensión de la muñeca y los dedos en la parte posterior del antebrazo."
+  },
+  { 
+    text: "El conducto torácico drena en:", 
+    options: ["Vena subclavia izquierda", "Vena cava superior", "Vena yugular interna derecha", "Aurícula derecha"], 
+    answerIndex: 0,
+    feedback: "El conducto torácico drena la linfa de casi todo el cuerpo en la vena subclavia izquierda."
+  },
+  { 
+    text: "¿Cuál es el principal ligamento que estabiliza la articulación de la rodilla medialmente?", 
+    options: ["Ligamento colateral medial", "Ligamento cruzado anterior", "Ligamento cruzado posterior", "Ligamento colateral lateral"], 
+    answerIndex: 0,
+    feedback: "El ligamento colateral medial estabiliza la rodilla frente a fuerzas en valgo."
+  },
+  { 
+    text: "El músculo sartorio realiza principalmente:", 
+    options: ["Flexión, abducción y rotación externa de cadera", "Extensión de rodilla", "Flexión plantar", "Dorsiflexión del pie"], 
+    answerIndex: 0,
+    feedback: "El sartorio permite cruzar la pierna al realizar múltiples movimientos de la cadera y flexión de rodilla."
+  },
+  { 
+    text: "El nervio accesorio (XI) inerva:", 
+    options: ["Trapecio y esternocleidomastoideo", "Deltoides y supraespinoso", "Diafragma", "Bíceps braquial"], 
+    answerIndex: 0,
+    feedback: "El nervio accesorio motoriza el trapecio y el esternocleidomastoideo, permitiendo movimientos de hombro y cuello."
+  },
+  { 
+    text: "La arteria mesentérica superior irriga principalmente:", 
+    options: ["Intestino delgado y colon ascendente", "Estómago y esófago", "Hígado y vesícula biliar", "Riñón y uréter"], 
+    answerIndex: 0,
+    feedback: "La mesentérica superior irriga la mayoría del intestino delgado y el colon ascendente."
+  },
+  { 
+    text: "¿Qué tipo de articulación es la coxofemoral?", 
+    options: ["Esferoidea o enartrosis", "Plana", "Silla de montar", "Trocoide"], 
+    answerIndex: 0,
+    feedback: "La articulación de la cadera es esferoidea, permitiendo movimientos en múltiples planos."
+  },
+  { 
+    text: "El ligamento amarillo une:", 
+    options: ["Laminas adyacentes de las vértebras", "Apófisis espinosas", "Cuerpos vertebrales", "Procesos transversos"], 
+    answerIndex: 0,
+    feedback: "El ligamento amarillo conecta las láminas de las vértebras y contribuye a la estabilidad de la columna."
+  },
+  { 
+    text: "¿Qué músculo es el principal responsable de la inspiración?", 
+    options: ["Diafragma", "Intercostales internos", "Escalenos", "Serrato anterior"], 
+    answerIndex: 0,
+    feedback: "El diafragma es el músculo principal de la inspiración, aumentando el volumen torácico."
+  },
+  { 
+    text: "La arteria femoral pasa por:", 
+    options: ["El triángulo femoral", "El canal inguinal", "El túnel carpiano", "El agujero obturador"], 
+    answerIndex: 0,
+    feedback: "La arteria femoral pasa por el triángulo femoral, donde se puede palpar su pulso."
+  },
+  { 
+    text: "¿Qué nervio atraviesa el foramen redondo del cráneo?", 
+    options: ["Nervio maxilar (V2)", "Nervio oftálmico (V1)", "Nervio mandibular (V3)", "Nervio óptico"], 
+    answerIndex: 0,
+    feedback: "El nervio maxilar (V2) atraviesa el foramen redondo para inervar la región media de la cara."
+  },
+  { 
+    text: "El músculo pectoral mayor realiza principalmente:", 
+    options: ["Aducción y rotación interna del brazo", "Flexión de la rodilla", "Extensión del codo", "Abducción del hombro"], 
+    answerIndex: 0,
+    feedback: "El pectoral mayor permite aducir y rotar internamente el brazo sobre el tórax."
+  },
+  { 
+    text: "La glándula pineal se localiza en:", 
+    options: ["Epífisis del diencéfalo", "Corteza frontal", "Hipotálamo", "Tálamo"], 
+    answerIndex: 0,
+    feedback: "La glándula pineal se encuentra en el epífisis del diencéfalo y regula los ritmos circadianos."
+  },
+  { 
+    text: "El nervio obturador inerva principalmente:", 
+    options: ["Aductores del muslo", "Flexores de la cadera", "Extensores de la rodilla", "Rotadores externos del muslo"], 
+    answerIndex: 0,
+    feedback: "El nervio obturador da motor a los músculos aductores del muslo y sensibilidad a la región medial del muslo."
+  },
+  { 
+    text: "¿Qué hueso forma la prominencia del codo?", 
+    options: ["Olécranon del cúbito", "Apófisis estiloides del radio", "Tuberosidad del húmero", "Epicóndilo lateral del húmero"], 
+    answerIndex: 0,
+    feedback: "El olécranon es la porción proximal del cúbito que forma la prominencia posterior del codo."
+  },
+  { 
+    text: "La vena safena magna desemboca en:", 
+    options: ["Vena femoral", "Vena poplítea", "Vena iliaca externa", "Vena cava inferior"], 
+    answerIndex: 0,
+    feedback: "La vena safena magna se une a la vena femoral a nivel del triángulo femoral."
+  },
+  { 
+    text: "El ligamento transverso del atlas mantiene:", 
+    options: ["El diente del axis contra el atlas", "El hueso hioides en su posición", "La articulación sacroilíaca", "El sacro y coxis alineados"], 
+    answerIndex: 0,
+    feedback: "Este ligamento mantiene el diente del axis en su lugar, permitiendo rotación de la cabeza."
+  },
+  { 
+    text: "El músculo gastrocnemio realiza principalmente:", 
+    options: ["Flexión plantar del pie y flexión de rodilla", "Dorsiflexión del pie", "Abducción del muslo", "Extensión de cadera"], 
+    answerIndex: 0,
+    feedback: "El gastrocnemio permite empujar el pie hacia abajo y flexionar la rodilla."
+  },
+  { 
+    text: "¿Qué estructura conecta los huesos del cráneo mediante suturas?", 
+    options: ["Hueso intermedio y tejido fibroso", "Cartílago hialino", "Ligamentos sinoviales", "Músculo temporal"], 
+    answerIndex: 0,
+    feedback: "Las suturas son articulaciones fibrosas inmóviles que unen los huesos del cráneo."
+  },
+  { 
+    text: "El nervio radial inerva:", 
+    options: ["Músculos extensores del antebrazo", "Músculos flexores del antebrazo", "Músculos del hombro", "Músculos del pectoral"], 
+    answerIndex: 0,
+    feedback: "El nervio radial controla la extensión de muñeca, dedos y supinación del antebrazo."
+  },
+  { 
+    text: "El músculo cuadrado lumbar se inserta en:", 
+    options: ["Apófisis transversas de L1-L4 y borde costal 12", "Tuberosidad isquiática", "Trocánter mayor del fémur", "Cresta ilíaca"], 
+    answerIndex: 0,
+    feedback: "El cuadrado lumbar estabiliza la columna y eleva la última costilla."
+  },
+  { 
+    text: "¿Cuál es la función del músculo obturador interno?", 
+    options: ["Rotación externa de la cadera", "Flexión de rodilla", "Extensión de cadera", "Abducción de hombro"], 
+    answerIndex: 0,
+    feedback: "El obturador interno rota externamente el muslo y ayuda a la estabilidad de la cadera."
+  },
+  { 
+    text: "La válvula tricúspide se encuentra entre:", 
+    options: ["Aurícula derecha y ventrículo derecho", "Aurícula izquierda y ventrículo izquierdo", "Ventrículo derecho y arteria pulmonar", "Aurícula izquierda y vena pulmonar"], 
+    answerIndex: 0,
+    feedback: "La válvula tricúspide regula el flujo de sangre entre aurícula y ventrículo derechos."
+  },
+  { 
+    text: "El nervio facial (VII) controla:", 
+    options: ["Músculos de la expresión facial", "Flexión del antebrazo", "Movimientos de la lengua", "Inervación diafragmática"], 
+    answerIndex: 0,
+    feedback: "El nervio facial es motor de los músculos de la expresión facial."
+  },
+  { 
+    text: "El plexo sacro se forma de:", 
+    options: ["Ramos ventrales L4-S4", "Ramos dorsales C5-T1", "Ramos ventrales T2-T5", "Ramos dorsales L1-L5"], 
+    answerIndex: 0,
+    feedback: "El plexo sacro da origen a nervios del miembro inferior posterior y glúteos."
+  },
+  { 
+    text: "El músculo esternocleidomastoideo realiza principalmente:", 
+    options: ["Rotación y flexión lateral de la cabeza", "Extensión del codo", "Flexión plantar", "Abducción de hombro"], 
+    answerIndex: 0,
+    feedback: "Este músculo permite girar y flexionar lateralmente la cabeza y cuello."
+  },
+  { 
+    text: "El hueso esfenoides se articula con:", 
+    options: ["Todos los huesos del cráneo", "Mandíbula", "Hioides", "Clavícula"], 
+    answerIndex: 0,
+    feedback: "El esfenoides se articula con la mayoría de los huesos del cráneo formando la base del cráneo."
+  },
+  { 
+    text: "El músculo trapecio realiza:", 
+    options: ["Elevación, depresión, retracción y rotación de la escápula", "Flexión plantar", "Rotación externa de cadera", "Extensión de codo"], 
+    answerIndex: 0,
+    feedback: "El trapecio estabiliza y moviliza la escápula en diferentes movimientos."
+  },
+  { 
+    text: "El ligamento longitudinal anterior se encuentra:", 
+    options: ["Cara anterior de los cuerpos vertebrales", "Cara posterior de los cuerpos vertebrales", "Entre procesos espinosos", "Entre apófisis transversas"], 
+    answerIndex: 0,
+    feedback: "Este ligamento limita la extensión excesiva de la columna vertebral."
+  },
+  { 
+    text: "El músculo sóleo se encuentra:", 
+    options: ["Profundo al gastrocnemio", "Superficial al tibial anterior", "En el muslo anterior", "En el antebrazo"], 
+    answerIndex: 0,
+    feedback: "El sóleo está debajo del gastrocnemio y es esencial para la flexión plantar."
+  },
+  { 
+    text: "El nervio ciático se divide en:", 
+    options: ["Tibial y peroneo común", "Femoral y obturador", "Radial y mediano", "Cubital y musculocutáneo"], 
+    answerIndex: 0,
+    feedback: "El nervio ciático se bifurca en el tibial y el peroneo común para inervar la pierna y pie."
+  },
+  { 
+    text: "El músculo tensor de la fascia lata se inserta en:", 
+    options: ["Tracto iliotibial", "Trocánter mayor", "Tuberosidad isquiática", "Cresta ilíaca"], 
+    answerIndex: 0,
+    feedback: "Este músculo estabiliza la cadera y rodilla a través del tracto iliotibial."
+  },
+  { 
+    text: "La arteria carótida interna irriga:", 
+    options: ["Cerebro anterior y medio", "Corazón", "Riñón", "Pulmón"], 
+    answerIndex: 0,
+    feedback: "La carótida interna entra al cráneo y suministra sangre a la corteza cerebral anterior y media."
+  },
+  { 
+    text: "El ligamento colateral lateral de la rodilla se inserta en:", 
+    options: ["Cóndilo lateral del fémur y cabeza del peroné", "Cóndilo medial del fémur y tibia", "Tibia y astrágalo", "Fémur y rótula"], 
+    answerIndex: 0,
+    feedback: "El ligamento colateral lateral estabiliza la rodilla contra fuerzas en varo."
+  },
+  { 
+    text: "El músculo serrato anterior se inserta en:", 
+    options: ["Bordes mediales de las escápulas", "Clavícula", "Húmero proximal", "Apófisis coracoides"], 
+    answerIndex: 0,
+    feedback: "El serrato anterior permite la abducción y rotación de la escápula."
+  },
+  { 
+    text: "El nervio tibial inerva:", 
+    options: ["Flexores plantares de la pierna", "Extensores del pie", "Aductores del muslo", "Flexores del muslo anterior"], 
+    answerIndex: 0,
+    feedback: "El nervio tibial controla la flexión plantar y los músculos posteriores de la pierna."
+  },
+  { 
+    text: "La arteria coronaria izquierda irriga principalmente:", 
+    options: ["Ventrículo izquierdo y septo interventricular", "Ventrículo derecho", "Aurícula derecha", "Ventrículo derecho y nodo SA"], 
+    answerIndex: 0,
+    feedback: "La coronaria izquierda irriga principalmente el ventrículo izquierdo y el septo interventricular."
+  },
+  { 
+    text: "El músculo aductor largo se inserta en:", 
+    options: ["Linea áspera del fémur", "Trocánter mayor", "Tuberosidad isquiática", "Cóndilo lateral del fémur"], 
+    answerIndex: 0,
+    feedback: "El aductor largo aduce y flexiona el muslo insertándose en la línea áspera."
+  },
+  { 
+    text: "El ligamento redondo del fémur limita:", 
+    options: ["Desplazamiento de la cabeza femoral", "Flexión de la rodilla", "Rotación de la tibia", "Extensión de cadera"], 
+    answerIndex: 0,
+    feedback: "Este ligamento contribuye a la estabilidad de la articulación coxofemoral."
+  },
+  { 
+    text: "El músculo glúteo medio realiza principalmente:", 
+    options: ["Abducción de la cadera", "Aducción de la cadera", "Flexión plantar", "Rotación interna del muslo"], 
+    answerIndex: 0,
+    feedback: "El glúteo medio abduce el muslo y estabiliza la pelvis al caminar."
+  },
+  { 
+    text: "El nervio pudendo inerva:", 
+    options: ["Periné y esfínteres", "Flexores del antebrazo", "Músculos del muslo anterior", "Músculos de la espalda"], 
+    answerIndex: 0,
+    feedback: "El nervio pudendo controla la musculatura del periné y esfínteres externo."
+  },
+  { 
+    text: "El ligamento cruzado anterior se inserta en:", 
+    options: ["Cóndilo lateral del fémur y cara anterior de la tibia", "Cóndilo medial del fémur", "Rótula y tibia", "Fémur y peroné"], 
+    answerIndex: 0,
+    feedback: "El LCA evita el desplazamiento anterior de la tibia sobre el fémur."
+  },
+  { 
+    text: "El músculo oblicuo externo del abdomen realiza:", 
+    options: ["Flexión lateral y rotación contralateral del tronco", "Extensión del tronco", "Abducción de hombro", "Flexión plantar"], 
+    answerIndex: 0,
+    feedback: "El oblicuo externo rota el tronco hacia el lado opuesto y flexiona lateralmente."
+  },
+  { 
+    text: "El nervio glosofaríngeo (IX) controla:", 
+    options: ["Sensibilidad posterior de la lengua y faringe", "Movimientos de la mandíbula", "Flexión del brazo", "Extensión de pierna"], 
+    answerIndex: 0,
+    feedback: "El IX nervio proporciona sensibilidad y gusto a la lengua posterior y faringe."
+  },
+  { 
+    text: "La arteria subclavia derecha se origina de:", 
+    options: ["Arco aórtico", "Arteria carótida común", "Tronco braquiocefálico", "Vena cava"], 
+    answerIndex: 0,
+    feedback: "La subclavia derecha nace del tronco braquiocefálico y suministra sangre al miembro superior derecho."
+  },
+  { 
+    text: "El ligamento inguinal se extiende entre:", 
+    options: ["Espina ilíaca anterior superior y tubérculo del pubis", "Cresta ilíaca y sacro", "Pubis y isquion", "Sacro y cóccix"], 
+    answerIndex: 0,
+    feedback: "El ligamento inguinal forma el límite inferior del abdomen y guía estructuras hacia el muslo."
+  }
+      ]
+    };
+
+    let selectedSubject = "";
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    function startQuiz(subject) {
+      selectedSubject = subject;
+      document.getElementById("start-screen").classList.remove("active");
+      document.getElementById("quiz-screen").classList.add("active");
+
+      // Cargar 25 preguntas aleatorias (aquí solo hay 3 de ejemplo)
+      questions = shuffle(allQuestions[subject]).slice(0, 25);
+      currentQuestionIndex = 0;
+      score = 0;
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const question = questions[currentQuestionIndex];
+      document.getElementById("question-text").textContent = question.text;
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      question.options.forEach((opt, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = opt;
+        btn.onclick = () => checkAnswer(index);
+        optionsDiv.appendChild(btn);
+      });
+
+      updateProgressBar();
+    }
+
+    function checkAnswer(selectedIndex) {
+      const question = questions[currentQuestionIndex];
+      const isCorrect = selectedIndex === question.answerIndex;
+
+      document.getElementById("quiz-screen").classList.remove("active");
+      document.getElementById("feedback-screen").classList.add("active");
+
+      if (isCorrect) {
+        score++;
+        document.getElementById("feedback-message").textContent = "Bien hecho mi niña 💖";
+        document.getElementById("feedback-detail").textContent = "";
+      } else {
+        document.getElementById("feedback-message").textContent = "Buen intento, tú puedes gordita 💕";
+        document.getElementById("feedback-detail").textContent = "💡 " + question.feedback;
+      }
+    }
+
+    function nextQuestion() {
+      document.getElementById("feedback-screen").classList.remove("active");
+      currentQuestionIndex++;
+
+      if (currentQuestionIndex < questions.length) {
+        document.getElementById("quiz-screen").classList.add("active");
+        showQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function showResults() {
+      document.getElementById("result-screen").classList.add("active");
+      const percentage = (score / questions.length) * 100;
+      document.getElementById("result-text").textContent = `Tu resultado: ${score}/${questions.length} (${percentage.toFixed(0)}%)`;
+
+      let message = "";
+      if (percentage < 50) message = "Buen intento, sé que puedes mejorar 💗";
+      else if (percentage < 90) message = "Vas por buen camino ¡Vamos por más! 💪";
+      else message = "Eres una chingona ¡Estoy orgulloso de ti! 💞";
+
+      document.getElementById("result-message").textContent = message;
+    }
+
+    function goHome() {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      document.getElementById("start-screen").classList.add("active");
+      document.getElementById("progress-bar").style.width = "0%";
+    }
+
+    function updateProgressBar() {
+      const progress = ((currentQuestionIndex) / questions.length) * 100;
+      document.getElementById("progress-bar").style.width = `${progress}%`;
+    }
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+  </script>
+</body>
+</html>
